@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlinkShop | Marketplace</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="#" onclick="showPage('home')">
+    ⚡ Blink<span>Shop</span>
+  </a>
+
+  <div class="header-search">
+    <input id="search" placeholder="O que você está procurando?">
+    <button onclick="renderProducts()">⌕</button>
+  </div>
+
+  <nav>
+    <button onclick="showPage('home')">Início</button>
+    <button onclick="showPage('favorites')">♡ Favoritos</button>
+    <button onclick="showPage('orders')">Pedidos</button>
+    <button onclick="showPage('notifications')">🔔 <span id="notificationCount">0</span></button>
+    <button onclick="showPage('chat')">💬</button>
+    <button onclick="showPage('cart')" class="cart-button">🛒 <span id="cartCount">0</span></button>
+  </nav>
+</header>
+
+<main>
+
+  <section id="home" class="page active">
+    <div class="hero">
+      <div class="hero-content">
+        <span class="eyebrow">⚡ SUA NOVA EXPERIÊNCIA DE COMPRAS</span>
+        <h1>Descubra algo<br><span>incrível hoje.</span></h1>
+        <p>Produtos selecionados, ofertas especiais e uma experiência feita para você.</p>
+        <button class="primary" onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">
+          Explorar produtos →
+        </button>
+      </div>
+      <div class="hero-art">🛍️</div>
+      <div class="hero-orb orb-one"></div>
+      <div class="hero-orb orb-two"></div>
+    </div>
+
+    <div class="benefits">
+      <div>🚚 <span><b>Entrega demonstrativa</b><small>Simulação de pedidos</small></span></div>
+      <div>🔒 <span><b>Compra simulada</b><small>Ambiente de demonstração</small></span></div>
+      <div>💎 <span><b>Ofertas especiais</b><small>Cupons disponíveis</small></span></div>
+    </div>
+
+    <div id="catalog" class="section-heading">
+      <div>
+        <span class="eyebrow">NOSSO CATÁLOGO</span>
+        <h2>Explore produtos</h2>
+      </div>
+      <select id="sortBy" onchange="renderProducts()">
+        <option value="featured">Destaques</option>
+        <option value="low">Menor preço</option>
+        <option value="high">Maior preço</option>
+        <option value="rating">Melhor avaliados</option>
+        <option value="az">Nome A-Z</option>
+      </select>
+    </div>
+
+    <div id="categories" class="categories"></div>
+    <div id="products" class="product-grid"></div>
+
+  </section>
+
+  <section id="detail" class="page">
+    <button class="back" onclick="showPage('home')">← Voltar à loja</button>
+    <div id="detailContent"></div>
+
+    <div class="panel">
+      <h2>⭐ Avaliações dos clientes</h2>
+      <div id="reviewList"></div>
+
+      <h3>Deixe sua avaliação</h3>
+      <select id="reviewStars" class="field">
+        <option value="5">★★★★★ - 5 estrelas</option>
+        <option value="4">★★★★ - 4 estrelas</option>
+        <option value="3">★★★ - 3 estrelas</option>
+        <option value="2">★★ - 2 estrelas</option>
+        <option value="1">★ - 1 estrela</option>
+      </select>
+      <input id="reviewName" class="field" placeholder="Seu nome">
+      <textarea id="reviewText" class="field" placeholder="Escreva sua avaliação..."></textarea>
+      <button class="primary" onclick="submitReview()">Enviar avaliação</button>
+    </div>
+  </section>
+
+  <section id="favorites" class="page">
+    <div class="section-heading"><h2>♡ Seus favoritos</h2></div>
+    <div id="favoriteProducts" class="product-grid"></div>
+  </section>
+
+  <section id="cart" class="page">
+    <h2>🛒 Meu carrinho</h2>
+    <div class="panel address-panel">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">ENTREGA INTERNACIONAL</span>
+          <h3>Endereço de entrega</h3>
+          <p id="savedAddressCount" class="muted" aria-live="polite">0 endereços salvos</p>
+        </div>
+        <select id="savedAddressSelect" class="field" onchange="useSavedAddress(this.value)">
+          <option value="">Novo endereço</option>
+        </select>
+      </div>
+
+      <div class="address-fields">
+        <label>Nome de quem recebe<input id="addressRecipient" class="field" autocomplete="name" placeholder="Nome completo"></label>
+        <label>Identificação do endereço<input id="addressLabel" class="field" placeholder="Ex.: Casa, trabalho"></label>
+        <label>Rua / avenida<input id="addressStreet" class="field" autocomplete="address-line1" placeholder="Rua e endereço"></label>
+        <label>Número<input id="addressNumber" class="field" placeholder="Número"></label>
+        <label>Complemento<input id="addressComplement" class="field" autocomplete="address-line2" placeholder="Apartamento, bloco (opcional)"></label>
+        <label>Bairro / distrito<input id="addressDistrict" class="field" placeholder="Bairro ou distrito"></label>
+        <label>Cidade<input id="addressCity" class="field" autocomplete="address-level2" placeholder="Cidade"></label>
+        <label>Estado / província<input id="addressRegion" class="field" autocomplete="address-level1" placeholder="Estado ou província"></label>
+        <label>CEP / código postal<input id="addressPostalCode" class="field" autocomplete="postal-code" placeholder="Código postal"></label>
+        <label>País<input id="addressCountry" class="field" autocomplete="country-name" placeholder="País"></label>
+      </div>
+
+      <div class="address-actions">
+        <button class="secondary" onclick="saveAddress()">Salvar endereço</button>
+        <button class="secondary" onclick="newAddress()">Novo endereço</button>
+      </div>
+      <p class="muted">Clique no mapa para marcar o destino. A origem demonstrativa da BlinkShop fica no Brasil.</p>
+      <div id="deliveryMap" class="world-map" aria-label="Mapa-múndi para selecionar o destino de entrega"></div>
+      <div class="coordinate-fields">
+        <label>Latitude<input id="addressLatitude" class="field" type="number" min="-90" max="90" step="any" oninput="syncAddressCoordinates()"></label>
+        <label>Longitude<input id="addressLongitude" class="field" type="number" min="-180" max="180" step="any" oninput="syncAddressCoordinates()"></label>
+      </div>
+      <p id="addressCoordinates" class="muted">Selecione o destino no mapa ou informe as coordenadas.</p>
+      <p class="privacy-note">Sem limite fixo de endereços (sujeito ao espaço disponível neste navegador). Os dados ficam salvos aqui; o mapa usa OpenStreetMap e o endereço não é enviado para um serviço de busca.</p>
+    </div>
+
+    <div class="checkout-layout">
+      <div class="panel" id="cartProducts"></div>
+
+      <div class="panel">
+        <h3>Resumo do pedido</h3>
+        <input id="coupon" class="field" placeholder="Código do cupom">
+        <button class="secondary full" onclick="applyCoupon()">Aplicar cupom</button>
+        <p id="couponMessage" class="muted"></p>
+        <div class="summary-line"><span>Subtotal</span><b id="subtotal">R$ 0,00</b></div>
+        <div class="summary-line"><span>Desconto</span><b id="discount">R$ 0,00</b></div>
+        <div class="summary-line total"><span>Total</span><b id="total">R$ 0,00</b></div>
+        <button class="primary full" onclick="checkout()">Finalizar pedido →</button>
+        <p class="muted">Checkout apenas demonstrativo. Nenhum pagamento será realizado.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="orders" class="page">
+    <h2>📦 Meus pedidos</h2>
+    <div id="orderList" class="panel"></div>
+    <div id="trackingContent"></div>
+  </section>
+
+  <section id="notifications" class="page">
+    <h2>🔔 Notificações</h2>
+    <div class="toolbar">
+      <button class="secondary" onclick="markAllRead()">Marcar todas como lidas</button>
+      <button class="secondary" onclick="clearNotifications()">Limpar</button>
+    </div>
+    <div id="notificationList" class="panel"></div>
+  </section>
+
+  <section id="chat" class="page">
+    <h2>💬 Atendimento</h2>
+    <div class="chat-layout panel">
+      <div id="chatContacts" class="chat-contacts"></div>
+      <div class="chat-area">
+        <h3 id="chatTitle">Atendimento BlinkShop</h3>
+        <div id="chatMessages" class="messages"></div>
+        <div class="chat-input">
+          <input id="chatInput" class="field" placeholder="Digite sua mensagem...">
+          <button class="primary" onclick="sendMessage()">➤</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="admin" class="page">
+    <span class="eyebrow">CONTROLE DA LOJA</span>
+    <h2>⚙ Painel administrativo</h2>
+    <div class="notice">Painel demonstrativo, sem servidor ou autenticação real.</div>
+
+    <div class="admin-stats">
+      <div class="stat-card"><span>Produtos</span><b id="statProducts">0</b></div>
+      <div class="stat-card"><span>Pedidos</span><b id="statOrders">0</b></div>
+      <div class="stat-card"><span>Favoritos</span><b id="statFavorites">0</b></div>
+    </div>
+
+    <div class="panel">
+      <h3 id="formTitle">Adicionar produto</h3>
+      <input id="productName" class="field" placeholder="Nome do produto">
+      <input id="productPrice" class="field" type="number" min="0.01" step="0.01" placeholder="Preço">
+      <input id="productEmoji" class="field" placeholder="Emoji do produto (ex.: 🎮)">
+      <input id="productCategory" class="field" placeholder="Categoria">
+      <textarea id="productDescription" class="field" placeholder="Descrição do produto"></textarea>
+      <button class="primary" onclick="saveProduct()">Salvar produto</button>
+      <button class="secondary" onclick="resetProductForm()">Limpar</button>
+      <input type="hidden" id="editingId">
+    </div>
+
+    <div class="panel">
+      <h3>Gerenciar catálogo</h3>
+      <div id="adminProducts"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="logo">⚡ Blink<span>Shop</span></div>
+  <p>Compre com a BLINK SHOP!, SUA MELHOR PARCEIRA.</p>
+  <small>© 2026 JK_COMPANY AND MIKAELGAY. Todos os direitos reservados.</small>
+</footer>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="imagens.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
